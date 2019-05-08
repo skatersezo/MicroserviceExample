@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Microservices.API.Adapters;
-using Microservices.API.Ports;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -14,38 +11,43 @@ namespace Microservices.API.Controllers
     [ApiController]
     public class TodosController : ControllerBase
     {
-        private readonly Config _config;
         private readonly ILogger _logger;
-        private readonly IAmAEventPublisher _eventPublisher;
-        private readonly IAmATodoRetriever _todoRetriever;
+        private readonly DatastoreService _datastoreService;
+        private readonly EventConsumerService _eventConsumerService;
+
+        public TodosController(ILogger logger, DatastoreService datastoreService, EventConsumerService eventConsumerService)
+        {
+            _logger = logger;
+            _datastoreService = datastoreService;
+            _eventConsumerService = eventConsumerService;
+        }
+        
 
         // GET api/todos
         [HttpGet]
-        public ActionResult<IEnumerable<TodoItem>> Get()
+        public async Task<ActionResult<IEnumerable<Todo>>> Get()
         {
 
-            return Ok(Enumerable.Empty<TodoItem>());
+            return null;
         }
 
         // GET api/todos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItem>> Get(string id)
+        public async Task<ActionResult<Todo>> Get(string id)
         {
-            return await _todoRetriever.ById(id); // what about the status code and the rest of the headers?
+            var todo = await _datastoreService.SelectTodoById(id);
+            return Ok(todo);
         }
 
         // POST api/todos
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> Post([FromBody] TodoItem todo)
+        public async Task<ActionResult<Todo>> Post([FromBody] Todo todo)
         {
             todo.Id = $"{Guid.NewGuid()}";
 
-            var successfulPublish = await _eventPublisher.SendTodo(todo);
+            await _eventConsumerService.SendTodo(todo);
 
-            if (successfulPublish)
-                return CreatedAtAction(nameof(Get), new {id = todo.Id}, todo);
-
-            throw new WebException($"{todo.Id} was not sent successfully.");
+            return CreatedAtAction(nameof(Get), new {id = todo.Id}, todo);
         }
 
     }

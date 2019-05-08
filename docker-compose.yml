@@ -1,0 +1,22 @@
+version: "3"
+services:
+  api:
+    build: ./Microservices.API
+    ports: 
+      - "5001:80"
+    networks: 
+      - backend
+  eventconsumer:
+    build: ./Microservices.EventConsumer
+    ports:
+      - "5002:80"
+    networks:
+      - backend
+  datastore:
+    build: ./Microservices.Datastore
+    ports:
+      - "5003:80"
+    networks:
+      - backend
+networks:
+  backend:

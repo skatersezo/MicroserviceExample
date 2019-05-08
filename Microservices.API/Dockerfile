@@ -1,23 +1,19 @@
 #Depending on the operating system of the host machines(s) that will build or run the containers, the image specified in the FROM statement may need to be changed.
 #For more information, please see https://aka.ms/containercompat
 
-FROM microsoft/dotnet:2.2-aspnetcore-runtime-nanoserver-1803 AS base
+FROM microsoft/dotnet:sdk AS build-env
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
 
-FROM microsoft/dotnet:2.2-sdk-nanoserver-1803 AS build
-WORKDIR /src
-COPY ["Microservices.API/Microservices.API.csproj", "Microservices.API/"]
-RUN dotnet restore "Microservices.API/Microservices.API.csproj"
-COPY . .
-WORKDIR "/src/Microservices.API"
-RUN dotnet build "Microservices.API.csproj" -c Release -o /app
+# Copy csproj and restore distinct layers
+COPY *.csproj ./
+RUN dotnet restore
 
-FROM build AS publish
-RUN dotnet publish "Microservices.API.csproj" -c Release -o /app
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish -c Release -o out
 
-FROM base AS final
+# Build runtime image
+FROM microsoft/dotnet:aspnetcore-runtime
 WORKDIR /app
-COPY --from=publish /app .
+COPY --from=build-env /app/out .
 ENTRYPOINT ["dotnet", "Microservices.API.dll"]

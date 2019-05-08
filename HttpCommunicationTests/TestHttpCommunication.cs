@@ -1,4 +1,3 @@
-using Microservices.Core;
 using NUnit.Framework;
 
 namespace HttpCommunicationTests

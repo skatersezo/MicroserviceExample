@@ -1,0 +1,1 @@
+docker-compose -p MicroservicesExample up --build -d

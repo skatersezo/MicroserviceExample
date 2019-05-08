@@ -7,6 +7,6 @@ namespace Microservices.API.Ports
 {
     interface IAmAEventPublisher
     {
-        Task<bool> SendTodo(TodoItem todo);
+        Task<string> SendTodo(Todo todo);
     }
 }

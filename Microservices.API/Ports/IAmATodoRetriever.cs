@@ -7,7 +7,7 @@ namespace Microservices.API.Ports
 {
     public interface IAmATodoRetriever
     {
-        Task<TodoItem> ById(string id);
-        Task<List<TodoItem>> GetAll();
+        Task<Todo> SelectTodoById(string id);
+        Task<List<Todo>> SelectAllTodos();
     }
 }
